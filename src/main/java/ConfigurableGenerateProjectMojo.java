@@ -27,7 +27,6 @@ import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.codehaus.mojo.versions.ResolveRangesMojo;
 
 @Mojo(name = "generate", requiresProject = false)
 @Execute(phase = LifecyclePhase.GENERATE_SOURCES)
