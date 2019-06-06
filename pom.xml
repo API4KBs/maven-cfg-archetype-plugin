@@ -23,7 +23,7 @@
 
   <artifactId>kmdp-configurable-archetype-plugin</artifactId>
   <packaging>maven-plugin</packaging>
-  <version>0.1.1</version>
+  <version>0.1.2</version>
   <groupId>edu.mayo.kmdp</groupId>
 
   <properties>
