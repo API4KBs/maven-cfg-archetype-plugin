@@ -19,6 +19,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.archetype.common.Constants;
 import org.apache.maven.archetype.mojos.CreateProjectFromArchetypeMojo;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -32,7 +33,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 @Execute(phase = LifecyclePhase.GENERATE_SOURCES)
 public class ConfigurableGenerateProjectMojo extends CreateProjectFromArchetypeMojo {
 
-  @Parameter
+  @Parameter( required = true )
   private File propertyFile;
 
   @Parameter( defaultValue = "${basedir}", readonly = true )
@@ -40,6 +41,20 @@ public class ConfigurableGenerateProjectMojo extends CreateProjectFromArchetypeM
 
   @Parameter( defaultValue = "${session}", readonly = true )
   private MavenSession sessionRef;
+
+  /**
+   * If true, deletes the content of the target directory where the archetype will
+   * be generated before the generation process starts
+   */
+  @Parameter( defaultValue = "true", required = false)
+  private boolean clear;
+
+  /**
+   * If true, prevents the archetype plugin from registering the new project as a child module of a
+   * parent POM in baseDir. In this case, the parent POM is responsible for registering the children as appropriate
+   */
+  @Parameter( defaultValue = "false" )
+  private boolean preserveRootPOM;
 
   public void execute()
       throws MojoExecutionException, MojoFailureException {
@@ -54,16 +69,32 @@ public class ConfigurableGenerateProjectMojo extends CreateProjectFromArchetypeM
 
 
         File targetDir = new File( baseDir, prp.getProperty("artifactId"));
-        if (targetDir.exists()) {
+        File basedirPom = new File( baseDir, Constants.ARCHETYPE_POM );
+        byte[] originalPom = new byte[0];
+
+        if (preserveRootPOM && basedirPom.exists()) {
+          originalPom = FileUtils.readFileToByteArray(basedirPom);
+        }
+
+        if (clear && targetDir.exists()) {
           FileUtils.deleteDirectory(targetDir);
         }
-      } catch (IOException e) {
-        e.printStackTrace();
+
+        super.execute();
+
+        if (preserveRootPOM && originalPom.length > 0) {
+          FileUtils.writeByteArrayToFile(basedirPom,originalPom);
+        }
+
+      } catch (Exception e) {
+        throw new MojoExecutionException( e.getMessage(), e);
       }
+
+    } else {
+      throw new MojoFailureException( "Property file <" + propertyFile + "> could not be resolved to a .properties file" );
     }
 
 
-    super.execute();
   }
 
 }
